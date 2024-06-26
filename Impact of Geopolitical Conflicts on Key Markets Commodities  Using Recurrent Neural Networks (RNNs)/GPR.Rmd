@@ -1,0 +1,90 @@
+---
+title: "Geopolical Risks"
+author: "Aziz"
+date: "2024-03-27"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(lubridate)
+library(dplyr)
+library(devtools)
+library(stringr)
+library(quantmod)
+```
+
+```{r}
+# Install the Trading Economics api to get acces to their Data
+#install_github("tradingeconomics/tradingeconomics/R/tradingeconomics")
+```
+
+```{r}
+library(readxl)
+data_gpr_export <- read_excel("data_gpr_export.xlsx", 
+    col_types = c("date", "numeric", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "numeric"))
+head(data_gpr_export)
+```
+```{r}
+tail(data_gpr_export)
+```
+```{r}
+# Function to fetch and process monthly prices
+get_monthly_prices <- function(symbol) {
+  # Fetch the data from Yahoo Finance
+  data <- getSymbols(symbol, src = 'yahoo', auto.assign = FALSE, from = "2000-01-01", to = "2024-04-01")
+  
+  # Convert to monthly prices, here we take the monthly closing price
+  monthly_data <- to.monthly(data, indexAt = 'lastof', OHLC = FALSE)
+  
+  # Extract the closing price
+  monthly_prices <- Cl(monthly_data)
+  
+  return(monthly_prices)
+}
+```
+
+```{r,warning=FALSE}
+# Get monthly prices for gold and cocoa
+gold_prices <- get_monthly_prices("GC=F")
+cocoa_prices <- get_monthly_prices("CC=F")
+write.csv(gold_prices,"Gold.csv")
+write.csv(cocoa_prices,"Cocoa.csv")
+```
+
+```{r}
+library(dplyr)
+library(zoo)
+Data = read.csv("data_gpr.csv")
+# Convert the date column to Date type if it's not
+Data$Date <- as.Date(Data$Date)
+head(Data)
+```
+```{r}
+GPR = Data%>%
+      dplyr::select(Date,GPR,GPRT,GPRH,GPRHT)
+head(GPR)
+```
+
+```{r}
+GPRC = Data%>%
+     dplyr::select(Date,GPRHC_ISR,GPRHC_RUS,GPRHC_UKR,GPRHC_USA)
+head(GPRC)
+```
+
+```{r}
+TS <- ts(
+  data = Data, 
+  start = c(2001, 1), 
+  end = c(2024, 12), 
+  frequency = 12
+  )
+
+```
+```{r}
+vars
+```
+
+
